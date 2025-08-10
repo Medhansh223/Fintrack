@@ -1,8 +1,9 @@
+import os
 import io
+import pandas as pd
 from fastapi import FastAPI, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-import pandas as pd
 
 from .database import Base, engine, get_db
 from . import schemas, crud
@@ -72,13 +73,14 @@ def export_csv(db: Session = Depends(get_db)):
         "txn_type": r.txn_type,
         "created_at": r.created_at.isoformat(),
     } for r in rows]
-    
-    df = pd.DataFrame(data)
     buf = io.StringIO()
-    df.to_csv(buf, index=False)
-
+    pd.DataFrame(data).to_csv(buf, index=False)
     return Response(
         content=buf.getvalue(),
         media_type="text/csv; charset=utf-8",
         headers={"Content-Disposition": 'attachment; filename="transactions.csv"'}
     )
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", "8000")))
