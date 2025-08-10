@@ -5,14 +5,15 @@ from sqlalchemy.orm import Session
 import pandas as pd
 
 from .database import Base, engine, get_db
-from . import models, schemas, crud
+from . import schemas, crud
 from .utils import fraud_check
 from .config import CORS_ORIGINS
 
-# Auto-create tables on first run
-Base.metadata.create_all(bind=engine)
-
 app = FastAPI(title="FinTrack API", version="1.0.0")
+
+@app.on_event("startup")
+def on_startup():
+    Base.metadata.create_all(bind=engine)
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,7 +25,7 @@ app.add_middleware(
 
 @app.get("/")
 def home():
-    return {"server is working"}
+    return {"message": "server is working"}
 
 @app.get("/health")
 def health():
@@ -71,14 +72,13 @@ def export_csv(db: Session = Depends(get_db)):
         "txn_type": r.txn_type,
         "created_at": r.created_at.isoformat(),
     } for r in rows]
-
+    
     df = pd.DataFrame(data)
     buf = io.StringIO()
     df.to_csv(buf, index=False)
-    csv_text = buf.getvalue()
 
     return Response(
-        content=csv_text,
+        content=buf.getvalue(),
         media_type="text/csv; charset=utf-8",
         headers={"Content-Disposition": 'attachment; filename="transactions.csv"'}
     )
