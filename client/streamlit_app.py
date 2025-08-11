@@ -121,7 +121,7 @@ with tab_dash:
 
                 # 5) Show table
                 show_cols = ["id","date","description","amount","txn_type",
-                            "created_at","is_suspicious","suspicious_reasons"]
+                            "created_at"]
                 show_cols = [c for c in show_cols if c in fdf.columns]
                 if fdf.empty:
                     min_d = df["date_only"].min()
