@@ -3,3 +3,4 @@ requests
 pandas
 matplotlib
 python-dateutil
+python-dotenv
